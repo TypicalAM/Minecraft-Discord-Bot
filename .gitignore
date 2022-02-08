@@ -1,8 +1,8 @@
-# created by virtualenv automatically
-.env
-lib
-lib64
-bin
-beta
-__pycache__
+# Ignored files
+*.env
+lib/
+lib64/
+bin/
+beta/
+__pycache__/
 pyvenv.cfg

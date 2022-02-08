@@ -1,8 +1,36 @@
 # Minecraft Server Bot
 
----
+
 
 A small discord bot to manage a local minecraft server
+
+---
+
+## Available commands
+
+Here are the commands that the bot can respond to:
+
+- `mc status` : Show the status of the server
+
+- `mc start` : Start the server if it isn't started yet
+
+- `mc stop` : Stop the server if it isn't stopped yet and there are no people
+
+- `mc inject` : Owner command to inject a command into the server's console, e.g. `mc inject kick my_user` would insert `kick my_user`
+
+- `mc help` : Print a basic help message
+
+The prefix can be altered by changing the line in `mc_bot_discord.py`:
+
+```python
+bot = Bot(command_prefix='mc ')
+```
+
+To something like
+
+```python
+bot = Bot(command_prefix='!')
+```
 
 ---
 
@@ -69,6 +97,26 @@ Where the amount of RAM used is 3G
 - Once the `.env` file is created, we are basically done and we can start the server using the below command. If successful, we should see something like this:
 
 ```shell
-python3 mc_bot_discord.py
+$ python3 mc_bot_discord.py
 [16:10:14] MyBot#2986 logged in!
 ```
+
+## Additional information
+
+Modifications of the bot are allowed, just be sure to read the `discord.py` docs over [here](https://discordpy.readthedocs.io/en/stable/ext/commands/index.html). 
+
+- `mc_bot_discord.py` :
+  
+  - This file is only used for the bot functionality
+  
+  - Every function is written in `async/await` syntax, for compliance with the bot framework. 
+  
+  - The real functionality of the bot is imported from the second file.
+
+- `utils.py` : 
+  
+  - Functions and constants used for checking, starting and stopping the server. 
+  
+  - Every function has a general docstring.
+  
+  - Type hints are used to be able to tell the outputs of functions. 

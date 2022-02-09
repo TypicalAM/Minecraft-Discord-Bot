@@ -1,7 +1,5 @@
 # Minecraft Server Bot
 
-
-
 A small discord bot to manage a local minecraft server
 
 ---
@@ -46,9 +44,11 @@ Install the following python packages before you use this bot.
 
 - `discord.py` : Arriving at your discord server!
 
+- Rcon and query enabled in your minecraft server settings. Here is a [quick guide](https://minecraft.fandom.com/wiki/Server.properties)
+
 ## Installation guide
 
-Follow these steps to get the bot on your sever.
+Follow these steps to get the bot on your server.
 
 - Clone this repo
 

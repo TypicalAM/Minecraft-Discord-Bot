@@ -107,16 +107,4 @@ async def inject(ctx, *args) -> None:
 
     await ctx.send(f'Command injected, output:\n{inject_output}')
 
-@bot.command()
-async def helper(ctx) -> None:
-    """Send help message in channel"""
-
-    await ctx.send('''
-mc status - check status
-mc helper - help message
-mc start - start the server
-mc stop - stop the server
-mc inject - inject a command into console
-            ''')
-
 bot.run(TOKEN)

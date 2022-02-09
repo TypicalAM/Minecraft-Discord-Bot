@@ -55,7 +55,7 @@ async def start(ctx) -> None:
 
     started = await start_server()
     if not started:
-        msg.edit(content='Starting failed')
+        await msg.edit(content='Starting failed')
         return
     await msg.edit(content='Running post-start operations')
 

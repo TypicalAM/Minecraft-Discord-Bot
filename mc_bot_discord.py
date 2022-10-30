@@ -120,17 +120,23 @@ async def lightning(ctx, *args):
         await ctx.send('You do not have permission to inject commands')
         return
 
+    if len(args) > 1:
+        logger.warning('There are more arguments than needed')
+        await ctx.send('More than one player specified?')
+        return
+
     data = await status_check()
     if not data:
         await ctx.send('The server is closed...')
         return
 
     print(args)
- #   inject_output = await inject_command(args)
- #   if not inject_output:
- #       await ctx.send('Command not injected, check logs')
- #       return
+    lightning_args = ('execute', 'at', f'@p[name={args[0]}]', 'run', 'summon', 'minecraft:lightning_bolt')
+    inject_output = await inject_command(lightning_args)
+    if not inject_output:
+        await ctx.send('Command not injected, check logs')
+        return
 
- #   await ctx.send(f'Command injected, output:\n{inject_output}')
+    await ctx.send(f'Command injected, output:\n{inject_output}')
 
 bot.run(TOKEN)

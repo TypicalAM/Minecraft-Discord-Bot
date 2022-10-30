@@ -5,14 +5,17 @@ from discord.ext.commands import Bot
 from utils import OWNER_NAME, TOKEN, status_check, players_check, start_server, \
         close_server, inject_command, run_post_start
 
-fh = logging.StreamHandler()
-fh_formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
-fh.setFormatter(fh_formatter)
+def get_logger() -> logging.Logger:
+    fh = logging.StreamHandler()
+    fh_formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
+    fh.setFormatter(fh_formatter)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.INFO)
-logger.addHandler(fh)
+    logger = logging.getLogger(__name__)
+    logger.setLevel(level=logging.INFO)
+    logger.addHandler(fh)
+    return logger
 
+logger = get_logger()
 bot = Bot(command_prefix='mc ')
 
 @bot.event
@@ -106,5 +109,27 @@ async def inject(ctx, *args) -> None:
         return
 
     await ctx.send(f'Command injected, output:\n{inject_output}')
+
+@bot.command()
+async def lightning(ctx, *args):
+    """Strike a player with mightly lightning"""
+
+    if str(ctx.author) != OWNER_NAME:
+        logger.warning('Injection: attempt by %s', ctx.author)
+        await ctx.send('You do not have permission to inject commands')
+        return
+
+    data = await status_check()
+    if not data:
+        await ctx.send('The server is closed...')
+        return
+
+    print(args)
+ #   inject_output = await inject_command(args)
+ #   if not inject_output:
+ #       await ctx.send('Command not injected, check logs')
+ #       return
+
+ #   await ctx.send(f'Command injected, output:\n{inject_output}')
 
 bot.run(TOKEN)

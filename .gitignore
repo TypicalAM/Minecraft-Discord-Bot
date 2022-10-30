@@ -1,0 +1,8 @@
+# Ignored files
+*.env
+lib/
+lib64/
+bin/
+beta/
+__pycache__/
+pyvenv.cfg

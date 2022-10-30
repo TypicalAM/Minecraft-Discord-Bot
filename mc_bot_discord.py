@@ -93,6 +93,7 @@ async def stop(ctx) -> None:
 async def inject(ctx, *args) -> None:
     """Inject a command into the server's console via rcon"""
 
+    print(args)
     if str(ctx.author) != OWNER_NAME:
         logger.warning('Injection: attempt by %s', ctx.author)
         await ctx.send('You do not have permission to inject commands')

@@ -1,53 +1,42 @@
-"""Utilities for the Minecraft Discord Bot"""
+"""Utilities for the minecraft discord bot"""
 
 import logging
-import os
-import asyncio
-import subprocess
 from typing import Optional
-import dotenv
-from mcstatus import MinecraftServer
+import settings
+import subprocess
+import asyncio
+
+from mcstatus import JavaServer
 from rcon import rcon
 
-logger = logging.getLogger(__name__)
-logger.setLevel(level=logging.INFO)
-fh = logging.StreamHandler()
-fh_formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
-fh.setFormatter(fh_formatter)
-logger.addHandler(fh)
+def get_logger() -> logging.Logger:
+    fh = logging.StreamHandler()
+    fh_formatter = logging.Formatter('[%(asctime)s] %(message)s', datefmt='%H:%M:%S')
+    fh.setFormatter(fh_formatter)
 
-dotenv.load_dotenv()
-TOKEN       = os.getenv("DISCORD_TOKEN")
-SERVER_PATH = os.getenv("SERVER_PATH")
-OWNER_NAME  = os.getenv("OWNER_NICK")
-TMUX_COMMAND= os.getenv("TMUX_COMMAND")
-RCON_PASS   = os.getenv("RCON_PASS")
+    logger = logging.getLogger(__name__)
+    logger.setLevel(level=logging.INFO)
+    logger.addHandler(fh)
+    return logger
 
-STATUS_CHECK_FREQUENCY  = int(os.getenv("STATUS_CHECK_FREQUENCY"))
-STATUS_CHECK_NUM        = int(os.getenv("STATUS_CHECK_NUMBER"))
+# Get the logger and the server instance
+server = JavaServer.lookup(settings.RCON_ARGS["host"])
+logger = get_logger()
 
-RCON_ARGS = {
-        "host": "127.0.0.1",
-        "port": 25575,
-        "passwd": RCON_PASS
-}
-
-server = MinecraftServer.lookup(RCON_ARGS["host"])
-
-async def status_check() -> Optional[int]:
-    """Check if the server is up, if yes, return the number of players"""
+async def status_check() -> bool:
+    """Check if the server is up"""
 
     logger.info('Checking status')
     try:
-        status = await server.async_status()
-    except ConnectionRefusedError:
+        await server.async_status()
+    except ConnectionRefusedError or TimeoutError:
         logger.warning('Status: closed')
-        return
+        return False
 
     logger.info('Status: running')
-    return -1 if not status.players.online else status.players.online
+    return True
 
-async def inject_command(command: tuple) -> Optional[str]:
+async def inject_command(command: str) -> Optional[str]:
     """Try to inject a command using the rcon protocol"""
 
     logger.info('Injecting a command')
@@ -57,7 +46,7 @@ async def inject_command(command: tuple) -> Optional[str]:
         return
 
     try:
-        output = await rcon(*command, **RCON_ARGS)
+        output = await rcon(*command.split(), **settings.RCON_ARGS)
     except ConnectionRefusedError:
         logger.warning('Injection: Connection refused')
         return
@@ -67,7 +56,10 @@ async def inject_command(command: tuple) -> Optional[str]:
 
     logger.warning('Injection: Output received')
 
-    output = (output[:100] + '..') if len(output) > 100 else output
+    if output is None:
+        output = ""
+    else:
+        output = (output[:100] + '..') if len(output) > 100 else output
     return output
 
 async def close_server() -> bool:
@@ -75,13 +67,13 @@ async def close_server() -> bool:
 
     logger.info('Closing server')
     try:
-        await rcon("stop", **RCON_ARGS)
+        await rcon("stop", **settings.RCON_ARGS)
     except ConnectionRefusedError:
         logger.warning('Closing: Server already closed')
         return False
 
     logger.info('Closing: closed')
-    await asyncio.sleep(STATUS_CHECK_FREQUENCY)
+    await asyncio.sleep(settings.STATUS_CHECK_FREQUENCY)
     return True
 
 
@@ -102,7 +94,7 @@ async def start_server() -> bool:
     logger.info('Starting server')
 
     try:
-        subprocess.check_output(TMUX_COMMAND.split(), cwd=SERVER_PATH)
+        subprocess.check_output(settings.TMUX_COMMAND.split(), cwd=settings.SERVER_PATH)
     except subprocess.CalledProcessError:
         logger.warning('Starting: CalledProcessError')
         return False
@@ -113,10 +105,10 @@ async def run_post_start() -> bool:
     """Confirm that the server can be connected to"""
 
     logger.info('Running post start operations')
-    for i in range(STATUS_CHECK_NUM):
-        await asyncio.sleep(STATUS_CHECK_FREQUENCY)
+    for i in range(settings.STATUS_CHECK_NUMBER):
+        await asyncio.sleep(settings.STATUS_CHECK_FREQUENCY)
         try:
-            await rcon("help", **RCON_ARGS)
+            await rcon("help", **settings.RCON_ARGS)
         except ConnectionRefusedError:
             pass
         except TimeoutError:
@@ -126,7 +118,7 @@ async def run_post_start() -> bool:
             break
     else:
         # If the server console failed then the 2nd check will not be attempted
-        logger.info('Post start: failed to connect after %s tries', STATUS_CHECK_NUM)
+        logger.info('Post start: failed to connect after %s tries', settings.STATUS_CHECK_NUMBER)
         return False
 
     # Second check to make sure the client can connect
@@ -136,3 +128,4 @@ async def run_post_start() -> bool:
         return False
     logger.info('Post start: server is up and running')
     return True
+

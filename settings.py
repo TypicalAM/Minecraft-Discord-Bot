@@ -23,6 +23,7 @@ TOKEN = os.getenv("DISCORD_TOKEN", default="example-token")
 RCON_PASS = os.getenv("RCON_PASS", default="example-pass")
 SERVER_PATH = os.getenv("SERVER_PATH", default="example-path")
 TMUX_COMMAND = os.getenv("TMUX_COMMAND", default="example-tmux-command")
+RCON_HOST = os.getenv("RCON_HOST", default="example-rcon-host")
 
 # Load the optional env variables
 OWNER_NICK = os.getenv("OWNER_NICK")
@@ -37,7 +38,7 @@ if any(
     raise ImproperlyConfigured("Some of the required settings are not set")
 
 # Set the rcon connection arguments
-RCON_ARGS = {"host": "127.0.0.1", "port": 25575, "passwd": RCON_PASS}
+RCON_ARGS = {"host": RCON_HOST, "port": 25575, "passwd": RCON_PASS}
 
 # Try to import mcstatus and rcon
 try:

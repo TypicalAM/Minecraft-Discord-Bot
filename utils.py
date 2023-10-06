@@ -22,7 +22,6 @@ def get_logger() -> logging.Logger:
 
 
 # Get the logger and the server instance
-server = JavaServer.lookup(settings.RCON_ARGS["host"])
 logger = get_logger()
 
 
@@ -31,9 +30,10 @@ async def status_check() -> bool:
 
     logger.info("Checking status")
     try:
+        server = JavaServer.lookup(settings.RCON_ARGS["host"])
         await server.async_status()
-    except ConnectionRefusedError or TimeoutError:
-        logger.warning("Status: closed")
+    except Exception as e:
+        logger.warning(f"Status: {e.__class__.__name__}")                       
         return False
 
     logger.info("Status: running")
@@ -73,8 +73,9 @@ async def close_server() -> bool:
     logger.info("Closing server")
     try:
         await rcon("stop", **settings.RCON_ARGS)
-    except ConnectionRefusedError:
+    except Exception as e:
         logger.warning("Closing: Server already closed")
+        logger.warning("Closing: %s", e)
         return False
 
     logger.info("Closing: closed")
@@ -87,8 +88,10 @@ async def players_check() -> Optional[list]:
 
     logger.info("Checking players by query")
     try:
+        server = JavaServer.lookup(settings.RCON_ARGS["host"])
         query = await server.async_query()
-    except ConnectionRefusedError:
+    except Exception as e:
+        logger.warning("Query: %s", e.__class__.__name__)
         logger.warning("Query: Server closed")
         return
     logger.info("Query: received player data")
@@ -116,8 +119,6 @@ async def run_post_start() -> bool:
         await asyncio.sleep(settings.STATUS_CHECK_FREQUENCY)
         try:
             await rcon("help", **settings.RCON_ARGS)
-        except ConnectionRefusedError:
-            pass
         except TimeoutError:
             pass
         else:

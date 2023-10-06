@@ -1,15 +1,31 @@
 """The main entrypoint for the minecraft discord bot"""
 
-import interactions
-import utils
+from interactions import (
+    Client,
+    Intents,
+    OptionType,
+    SlashContext,
+    listen,
+    slash_command,
+    slash_option,
+)
+
 import settings
+import utils
 
-bot = interactions.Client(token=settings.TOKEN)
+bot = Client(intents=Intents.DEFAULT, token=settings.TOKEN)
 
 
-@bot.command()
-async def status(ctx: interactions.CommandContext) -> None:
+@listen()
+async def on_ready() -> None:
+    """Print a message when the bot is ready"""
+    print(f"Logged in as {bot.user}")
+
+
+@slash_command(name="status", description="Check the status of the server")
+async def status(ctx: SlashContext) -> None:
     """Check the status of the server"""
+    await ctx.defer()
 
     is_open = await utils.status_check()
     if not is_open:
@@ -28,9 +44,10 @@ async def status(ctx: interactions.CommandContext) -> None:
     )
 
 
-@bot.command()
-async def start(ctx: interactions.CommandContext) -> None:
+@slash_command(name="start", description="Start the server")
+async def start(ctx: SlashContext) -> None:
     """Start the server"""
+    await ctx.defer()
 
     is_open = await utils.status_check()
     if is_open:
@@ -51,9 +68,11 @@ async def start(ctx: interactions.CommandContext) -> None:
     await msg.edit(content="The server is opened")
 
 
-@bot.command()
-async def stop(ctx: interactions.CommandContext) -> None:
+@slash_command(name="stop", description="Stop the server")
+async def stop(ctx: SlashContext) -> None:
     """Try to stop the server via rcon"""
+    await ctx.defer()
+
     is_open = await utils.status_check()
     if not is_open:
         await ctx.send("The server is already closed...")
@@ -75,10 +94,18 @@ async def stop(ctx: interactions.CommandContext) -> None:
     await msg.edit(content="Closed successfully")
 
 
-@bot.command()
-@interactions.option(description="the command that you want to inject")
-async def inject(ctx: interactions.CommandContext, command: str) -> None:
+@slash_command(
+    name="inject", description="Inject a command into the server's console via rcon"
+)
+@slash_option(
+    name="command_to_inject",
+    description="The command to inject",
+    required=True,
+    opt_type=OptionType.STRING,
+)
+async def inject(ctx: SlashContext, command_to_inject: str) -> None:
     """Inject a command into the server's console via rcon"""
+    await ctx.defer()
 
     if str(ctx.author) != settings.OWNER_NICK:
         await ctx.send("You do not have permission to inject commands")
@@ -89,7 +116,7 @@ async def inject(ctx: interactions.CommandContext, command: str) -> None:
         await ctx.send("The server is closed...")
         return
 
-    inject_output = await utils.inject_command(command)
+    inject_output = await utils.inject_command(command_to_inject)
     if inject_output is None:
         await ctx.send("Command not injected, check logs")
         return
@@ -101,9 +128,14 @@ async def inject(ctx: interactions.CommandContext, command: str) -> None:
     await ctx.send(f"Command injected, output:\n{inject_output}")
 
 
-@bot.command()
-@interactions.option(description="the player that you want to strike")
-async def lightning(ctx: interactions.CommandContext, player_name: str):
+@slash_command(name="lightning", description="Strike a player with mightly lightning")
+@slash_option(
+    name="player_name",
+    description="The player to strike",
+    required=True,
+    opt_type=OptionType.STRING,
+)
+async def lightning(ctx: SlashContext, player_name: str):
     """Strike a player with mightly lightning"""
 
     if len(player_name.split()) > 1:
@@ -126,4 +158,4 @@ async def lightning(ctx: interactions.CommandContext, player_name: str):
     await ctx.send(f"Command injected, output:\n{inject_output}")
 
 
-bot.start()
+bot.start(settings.TOKEN)

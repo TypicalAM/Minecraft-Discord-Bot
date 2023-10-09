@@ -1,7 +1,7 @@
 ############################
 # STEP 1 build & run interactively
 ############################
-FROM python:alpine
+FROM python:3.11-slim-bullseye
 
 # Set the appropriate env vars
 ENV PYTHONDONTWRITEBYTECODE 1

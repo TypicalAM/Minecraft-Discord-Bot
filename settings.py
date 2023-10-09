@@ -15,8 +15,7 @@ try:
 except ImportError:
     pass
 else:
-    if not load_dotenv(find_dotenv(".env")):
-        raise ImproperlyConfigured("Not a single environment variable has been set")
+    load_dotenv(find_dotenv(".env"))
 
 # Load the necessary env variables
 TOKEN = os.getenv("DISCORD_TOKEN", default="example-token")

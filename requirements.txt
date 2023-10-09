@@ -1,2 +1,4 @@
 discord-py-interactions==5.5.1
 python-dotenv==0.21.0
+rcon==2.3.6
+mcstatus==10.0.1

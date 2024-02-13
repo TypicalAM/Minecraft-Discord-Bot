@@ -61,11 +61,14 @@ async def start(ctx: SlashContext) -> None:
         return
     await msg.edit(content="Running post-start operations")
 
-    post_start_status = await utils.run_post_start()
-    if not post_start_status:
-        await msg.edit(content="The server hasn't started yet")
-        return
-    await msg.edit(content="The server is opened")
+    try:
+        post_start_status = await utils.run_post_start()
+        if not post_start_status:
+            await msg.edit(content="The server hasn't started yet")
+            return
+        await msg.edit(content="The server is opened")
+    except:
+        await msg.edit(content="Still waiting on the server, it might be starting up very slowly")
 
 
 @slash_command(name="stop", description="Stop the server")
